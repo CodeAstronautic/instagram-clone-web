@@ -1,0 +1,34 @@
+/* Add this CSS to your global stylesheet (e.g., index.css) */
+
+/* Light Theme */
+body.light-theme {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+/* Dark Theme */
+body.dark-theme {
+    background-color: #000000; /* Dark background */
+    color: #ffffff; /* White text */
+}
+
+/* Ensuring that specific elements also adhere to the theme */
+.theme-container.light-theme .text-input,
+.theme-container.light-theme .button {
+    background-color: #fafafa; /* Light background for inputs */
+    color: #000000; /* Dark text */
+    border: 1px solid #dbdbdb; /* Light border */
+}
+
+.theme-container.dark-theme .text-input,
+.theme-container.dark-theme .button {
+    background-color: #ffffff; /* White background for inputs */
+    color: #000000; /* Black text */
+    border: 1px solid #ffffff; /* White border */
+}
+
+/* Adjusting the button's background color in dark mode */
+.theme-container.dark-theme .button {
+    background-color: #ffffff; /* White background for the button */
+    color: #000000; /* Black text */
+}
