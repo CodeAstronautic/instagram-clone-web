@@ -6,6 +6,7 @@ import { Sidebar } from '../components/Sidebar';
 import Suggestions from './Suggestions';
 import Profile from './Profile';
 import Reel from './Reel';
+import { FaRegHeart } from "react-icons/fa";
 
 function Home() {
     const [selectedMenuItem, setSelectedMenuItem] = useState('Home');
@@ -35,6 +36,13 @@ function Home() {
     const [newCaption, setNewCaption] = useState('');
     const [newImage, setNewImage] = useState(null);
 
+    const [comments, setComments] = useState(() => {
+        const savedComments = localStorage.getItem('comments');
+        return savedComments ? JSON.parse(savedComments) : {};
+    });
+    const [showComments, setShowComments] = useState(null);
+    const [newComment, setNewComment] = useState('');
+
     useEffect(() => {
         localStorage.setItem('posts', JSON.stringify(posts));
     }, [posts]);
@@ -48,6 +56,15 @@ function Home() {
     }, [stories]);
 
     const handleLike = (id) => {
+        setPosts(prevPosts => {
+            return prevPosts.map(post => {
+                if (post.id === id) {
+                    const newLikeCount = likedPosts.has(id) ? post.likeCount - 1 : post.likeCount + 1;
+                    return { ...post, likeCount: newLikeCount };
+                }
+                return post;
+            });
+        });
         setLikedPosts(prev => {
             const newLikes = new Set(prev);
             if (newLikes.has(id)) {
@@ -58,7 +75,9 @@ function Home() {
             return newLikes;
         });
     };
-
+    const likeCount = (postId) => {
+        return likedPosts.has(postId) ? 1 : 0;
+    };
     const handleStoryUpload = (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -106,7 +125,7 @@ function Home() {
     };
 
     const handlePostUpload = (newPost) => {
-        setPosts(prevPosts => [...prevPosts, { id: prevPosts.length + 1, ...newPost }]);
+        setPosts(prevPosts => [...prevPosts, { id: prevPosts.length + 1, likeCount: 0, ...newPost }]);
     };
 
     const handlePostOptionsClick = (id) => {
@@ -121,11 +140,10 @@ function Home() {
     };
 
     const handleDeletePost = () => {
-        const confirmed = window.confirm('Are you sure you want to delete this post?');
-        if (confirmed) {
-            setPosts(prevPosts => prevPosts.filter(post => post.id !== showPostOptions));
-            setShowPostOptions(null);
-        }
+
+        setPosts(prevPosts => prevPosts.filter(post => post.id !== showPostOptions));
+        setShowPostOptions(null);
+
     };
 
     const handleEditCaptionChange = (event) => {
@@ -153,7 +171,48 @@ function Home() {
             setEditingPost(null);
         }
     };
+    const saveCommentsToLocalStorage = (comments) => {
+        localStorage.setItem('comments', JSON.stringify(comments));
+    };
+    const handleCommentSubmit = (postId) => {
+        if (newComment.trim()) {
+            setComments(prevComments => {
+                const updatedComments = { ...prevComments };
+                if (!updatedComments[postId]) {
+                    updatedComments[postId] = [];
+                }
+                // Check if the last comment added is the same as the new comment to avoid duplicates
+                const lastComment = updatedComments[postId][updatedComments[postId].length - 1];
+                if (lastComment && lastComment.text === newComment) {
+                    return prevComments; // Avoid adding the same comment twice
+                }
+                updatedComments[postId].push({
+                    id: Date.now(),
+                    username: generateRandomName(),
+                    avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}`,
+                    text: newComment
+                });
+                saveCommentsToLocalStorage(updatedComments); // Save to localStorage
+                return updatedComments;
+            });
+            setNewComment('');
+        }
+    };
 
+
+    const toggleCommentSection = (postId) => {
+        setShowComments(showComments === postId ? null : postId);
+    };
+
+
+    const commentCount = (postId) => {
+        return comments[postId] ? comments[postId].length : 0;
+    };
+    useEffect(() => {
+        localStorage.setItem('comments', JSON.stringify(comments));
+    }, [comments]);
+
+    
     return (
         <div className="flex bg-gray-50 min-h-screen">
             <input
@@ -216,98 +275,126 @@ function Home() {
                             ))}
                         </div>
 
-                        <div>
-                            <div className="flex flex-col space-y-4">
-                                {posts.map((post) => (
-                                    <div key={post.id} className="bg-white shadow-md rounded-lg mb-4">
-                                        {/* Post Options */}
-                                        <div className="relative">
-                                            <button
-                                                onClick={() => handlePostOptionsClick(post.id)}
-                                                className="absolute top-2 right-2 text-gray-600 text-lg"
-                                            >
-                                                <FaEllipsisV />
-                                            </button>
-                                            {showPostOptions === post.id && (
-                                                <div className="absolute top-8 right-2 bg-white shadow-md rounded-lg border">
-                                                    <button
-                                                        onClick={() => handleEditPost(post)}
-                                                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                                    >
-                                                        Edit
-                                                    </button>
-                                                    <button
-                                                        onClick={handleDeletePost}
-                                                        className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50"
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                        {/* Post Image */}
-                                        <img src={post.imageUrl} alt={`Post ${post.id}`} className="w-full" />
-                                        {/* Post Actions */}
-                                        <div className="flex items-center justify-between px-4 py-2">
-                                            <div className="flex items-center space-x-4">
-                                                <button
-                                                    onClick={() => handleLike(post.id)}
-                                                    className="text-[30px] transition-colors duration-300"
-                                                >
-                                                    {likedPosts.has(post.id) ? (
-                                                        <FcLike className='text-[30px]' />
-                                                    ) : (
-                                                        <CiHeart className='text-[30px]' />
-                                                    )}
-                                                </button>
-                                                <div className="text-[27px] transition-colors duration-300">
-                                                    <svg aria-label="Comment" className="x1lliihq x1n2onr6 x5n08af"
-                                                        fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24">
-                                                        <title>Comment</title>
-                                                        <path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z"
-                                                            fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path>
-                                                    </svg>
-                                                </div>
-                                                <div>
-                                                    <svg aria-label="Share Post" className="x1lliihq x1n2onr6 x5n08af" fill="currentColor"
-                                                        height="24" role="img" viewBox="0 0 24 24" width="24">
-                                                        <title>Share Post</title>
-                                                        <line fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"
-                                                            x1="22" x2="9.218" y1="3" y2="10.083"></line>
-                                                        <polygon fill="none" points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334"
-                                                            stroke="currentColor" stroke-linejoin="round" stroke-width="2"></polygon>
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Post Caption */}
-                                        <div className="px-4 pb-4">
-                                            <span className="font-semibold">{post.author} </span>
-                                            <span>{post.caption}</span>
+                        {posts.map((post) => (
+                            <div key={post.id} className="mb-8 bg-white rounded-lg shadow-sm p-4">
+                                <div className="flex justify-between items-center mb-4">
+                                    <div className="flex items-center space-x-4">
+                                        <img className="h-12 w-12 rounded-full" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ718nztPNJfCbDJjZG8fOkejBnBAeQw5eAUA&s" alt="azevde_ddr" />
+                                        <div>
+                                            <div className="font-bold">azevde_ddr</div>
+                                            <div className="text-gray-500 text-sm">2d</div>
                                         </div>
                                     </div>
-                                ))}
+                                    <div className="relative">
+                                        <button onClick={() => handlePostOptionsClick(post.id)}>
+                                            <FaEllipsisV />
+                                        </button>
+                                        {showPostOptions === post.id && (
+                                            <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-lg shadow-xl">
+                                                <button
+                                                    onClick={() => handleEditPost(post)}
+                                                    className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100"
+                                                >
+                                                    Edit Post
+                                                </button>
+                                                <button
+                                                    onClick={handleDeletePost}
+                                                    className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-100"
+                                                >
+                                                    Delete Post
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {editingPost?.id === post.id ? (
+                                    <div className="mb-4">
+                                        <textarea
+                                            value={newCaption}
+                                            onChange={handleEditCaptionChange}
+                                            className="w-full p-2 border border-gray-300 rounded-lg mb-2"
+                                        />
+                                        <div className="flex justify-between items-center">
+                                            <input type="file" id="editImageInput" onChange={handleImageUpload} />
+                                            <button
+                                                onClick={handleSaveEdit}
+                                                className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+                                            >
+                                                Save
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <img className="w-full rounded-lg mb-4" src={post.imageUrl} alt={post.caption} />
+                                        <p className="mb-4">{post.caption}</p>
+                                    </div>
+                                )}
+
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-4">
+                                        <button onClick={() => handleLike(post.id)}>
+                                            {likedPosts.has(post.id) ? <FcLike size={28} /> : <FaRegHeart size={26} />}
+                                        </button>
+                                        <span className="text-gray-500 text-sm">{likeCount(post.id)} likes</span>
+                                        <button onClick={() => toggleCommentSection(post.id)}>
+                                            <svg aria-label="Comment" className="x1lliihq x1n2onr6 x5n08af"
+                                                fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24">
+                                                <title>Comment</title>
+                                                <path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z"
+                                                    fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path>
+                                            </svg>
+                                        </button>
+                                        <span className="text-gray-500 text-sm">{commentCount(post.id)} comments</span>
+                                    </div>
+                                </div>
+
+                                {showComments === post.id && (
+                                    <div className="mt-4">
+                                        {comments[post.id] && comments[post.id].map(comment => (
+                                            <div key={comment.id} className="flex items-center space-x-4 mb-2">
+                                                <div className='flex items-center space-x-4 mb-2'>
+                                                <img className="h-8 w-8 rounded-full" src={comment.avatar} alt={comment.username} />
+                                                <div>
+                                                    <div className="font-bold">{comment.username}</div>
+                                                    <div>{comment.text}</div>
+                                                </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        setComments((prevComments) => {
+                                                            const updatedComments = { ...prevComments };
+                                                            updatedComments[post.id] = updatedComments[post.id].filter((c) => c.id !== comment.id);
+                                                            return updatedComments;
+                                                        });
+                                                    }}
+                                                    className="text-red-500 hover:text-red-700 ml-2"
+                                                >
+                                                    <FaTrash />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        <input
+                                            type="text"
+                                            value={newComment}
+                                            onChange={(e) => setNewComment(e.target.value)}
+                                            className="w-full p-2 border border-gray-300 rounded-lg"
+                                            placeholder="Add a comment..."
+                                        />
+                                        <button
+                                            onClick={() => handleCommentSubmit(post.id)}
+                                            className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-2"
+                                        >
+                                            Post
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                        </div>
+                        ))}
                     </>
                 }
             </div>
-            {selectedMenuItem !== 'Profile' &&
-                <div className="w-1/5 p-4 border-l bg-white">
-                    <div className="mb-8">
-                        <div className="flex items-center space-x-4">
-                            <img className="w-16 h-16 rounded-full" src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ718nztPNJfCbDJjZG8fOkejBnBAeQw5eAUA&s' />
-                            <div>
-                                <p className="font-semibold">azevde_ddr</p>
-                                <p className="text-sm text-gray-500">Azevedo</p>
-                            </div>
-                            <button className="text-blue-500 text-sm font-semibold">Switch</button>
-                        </div>
-                    </div>
-                    <Suggestions />
-                </div>
-            }
             {/* Story Modal */}
             {selectedStory && (
                 <div onClick={closeStory} className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
@@ -334,58 +421,22 @@ function Home() {
                     </div>
                 </div>
             )}
-            {/* Edit Post Modal */}
-            {editingPost && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
-                    <div className="w-[400px] p-6 bg-white rounded-lg">
-                        <h2 className="text-xl font-semibold mb-4">Edit Post</h2>
-                        <input
-                            type="file"
-                            id="editImageInput"
-                            style={{ display: 'none' }}
-                            onChange={handleImageUpload}
-                            accept="image/*"
-                        />
-                        <div className="mb-4">
-                            <label htmlFor="caption" className="block text-sm font-medium text-gray-700">Caption</label>
-                            <input
-                                id="caption"
-                                type="text"
-                                value={newCaption}
-                                onChange={handleEditCaptionChange}
-                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <button
-                                onClick={() => document.getElementById('editImageInput').click()}
-                                className="text-blue-500"
-                            >
-                                {newImage ? 'Change Image' : 'Upload Image'}
-                            </button>
-                        </div>
-                        {newImage && (
-                            <div className="mb-4">
-                                <img src={newImage} alt="New" className="w-full h-auto rounded-md" />
+
+            {selectedMenuItem !== 'Profile' &&
+                <div className="w-1/5 p-4 border-l bg-white">
+                    <div className="mb-8">
+                        <div className="flex items-center space-x-4">
+                            <img className="w-16 h-16 rounded-full" src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ718nztPNJfCbDJjZG8fOkejBnBAeQw5eAUA&s' />
+                            <div>
+                                <p className="font-semibold">azevde_ddr</p>
+                                <p className="text-sm text-gray-500">Azevedo</p>
                             </div>
-                        )}
-                        <div className="flex space-x-4">
-                            <button
-                                onClick={handleSaveEdit}
-                                className="bg-blue-500 text-white py-2 px-4 rounded-md"
-                            >
-                                Save
-                            </button>
-                            <button
-                                onClick={() => setEditingPost(null)}
-                                className="bg-gray-300 text-black py-2 px-4 rounded-md"
-                            >
-                                Cancel
-                            </button>
+                            <button className="text-blue-500 text-sm font-semibold">Switch</button>
                         </div>
                     </div>
+                    <Suggestions />
                 </div>
-            )}
+            }
         </div>
     );
 }

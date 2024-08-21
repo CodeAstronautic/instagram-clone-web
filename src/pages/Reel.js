@@ -135,7 +135,7 @@ const Reel = () => {
   ];
 
   return (
-    <div className="w-[500px] m-auto reel-page flex flex-col items-center justify-center h-auto bg-[#fff]">
+    <div className="w-[500px] m-auto reel-page flex flex-col items-center justify-center h-auto ">
       {reels.map((reel, index) => (
         <div key={index} className="relative flex gap-[2rem] w-full h-full mt-[40px]">
           <ReactPlayer
