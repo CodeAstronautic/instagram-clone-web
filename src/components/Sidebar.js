@@ -7,13 +7,14 @@ import { FaThreads } from 'react-icons/fa6';
 import InstagramLogo from '../assets/logo/InstagramLogo.png';
 import reel from '../assets/navlogo/reel.png';
 import { PostModal } from './Modal';
-import { MoreOptionsModal } from './MoreOptionsModal';  // Import the new modal
+import { MoreOptionsModal } from './MoreOptionsModal'; 
 
 export const Sidebar = ({ setSelectedMenuItem, selectedMenuItem, onPostUpload, username, handlePostUpload }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isMoreModalOpen, setIsMoreModalOpen] = useState(false);  // State for the new modal
+    const [isMoreModalOpen, setIsMoreModalOpen] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
     const [caption, setCaption] = useState('');
+    const [showNames, setShowNames] = useState(true); // State to toggle names
 
     const openPostModal = () => setIsModalOpen(true);
     const closePostModal = () => setIsModalOpen(false);
@@ -21,6 +22,11 @@ export const Sidebar = ({ setSelectedMenuItem, selectedMenuItem, onPostUpload, u
     const closeMoreModal = () => setIsMoreModalOpen(false);
 
     const handleMenuItemClick = (itemName, action) => {
+        if (itemName === 'Messages') {
+            setShowNames(false); // Hide names when "Messages" is clicked
+        } else {
+            setShowNames(true); // Show names for other pages
+        }
         if (action) {
             action();
         } else {
@@ -73,7 +79,7 @@ export const Sidebar = ({ setSelectedMenuItem, selectedMenuItem, onPostUpload, u
                                 }`}
                         >
                             {item.icon}
-                            <span>{item.name}</span>
+                            {showNames && <span>{item.name}</span>}
                         </div>
                     ))}
                 </nav>
@@ -81,7 +87,7 @@ export const Sidebar = ({ setSelectedMenuItem, selectedMenuItem, onPostUpload, u
                     <div className={`hover:bg-[#f2f2f2] w-[350px] h-[50px] rounded-[10px] p-[10px] pb-[20px] flex items-center space-x-4 cursor-pointer ${selectedMenuItem === 'Threads' ? 'bg-[#e2e2e2] text-[#000]' : 'text-gray-800'
                         }`}>
                         <FaThreads className="text-[28px]" />
-                        <span>Threads</span>
+                        {showNames && <span>Threads</span>}
                     </div>
                     <div
                         onClick={openMoreModal}
@@ -93,7 +99,7 @@ export const Sidebar = ({ setSelectedMenuItem, selectedMenuItem, onPostUpload, u
                             <line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="3" x2="21" y1="12" y2="12"></line>
                             <line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="3" x2="21" y1="20" y2="20"></line>
                         </svg>
-                        <span>More</span>
+                        {showNames && <span>More</span>}
                     </div>
                 </div>
             </div>
@@ -104,7 +110,6 @@ export const Sidebar = ({ setSelectedMenuItem, selectedMenuItem, onPostUpload, u
 
             {isMoreModalOpen && (
                 <MoreOptionsModal setIsMoreModalOpen={setIsMoreModalOpen} />
-                
             )}
         </div>
     );

@@ -34,7 +34,7 @@ export const PostModal = ({ setIsModalOpen, onPostUploads }) => {
             onClick={() => setIsModalOpen(false)}
         >
             <div
-                className="bg-white p-6 rounded-lg w-[600px] h-auto"
+                className="bg-white p-6 rounded-lg w-auto h-auto"
                 onClick={(e) => e.stopPropagation()}
             >
                 <h1 className="text-[16px] border-b-[1.5px] text-center">Create new Post</h1>
@@ -42,7 +42,7 @@ export const PostModal = ({ setIsModalOpen, onPostUploads }) => {
                 <h1 className="text-[20px] text-center mb-[20px]">Drag photos and videos here</h1>
 
                 <div>
-                    <div className="w-full mb-4">
+                    <div className="w-full flex justify-center m-auto mb-4">
                         {selectedImage ? (
                             <div className="relative">
                                 <img
@@ -58,7 +58,7 @@ export const PostModal = ({ setIsModalOpen, onPostUploads }) => {
                                 </button>
                             </div>
                         ) : (
-                            <button className="w-[200px] h-[30px] bg-[#1877F2] text-[#fff] hover:bg-[#0652dd] text-[16px] p-[1px] rounded-[10px] border-[1px] ml-[180px]">
+                            <button className=" m-auto bg-[#1877F2] text-[#fff] hover:bg-[#0652dd] text-[14px] p-4 rounded-[10px] border-[1px]">
                                 <label>
                                     <input
                                         type="file"
@@ -93,12 +93,6 @@ export const PostModal = ({ setIsModalOpen, onPostUploads }) => {
                 </div>
 
             </div>
-            <button
-                className="absolute top-3 right-[30px] text-[#fff] text-[28px]"
-                onClick={() => setIsModalOpen(false)}
-            >
-                <MdClose />
-            </button>
         </div>
     );
 }

@@ -7,6 +7,8 @@ import Suggestions from './Suggestions';
 import Profile from './Profile';
 import Reel from './Reel';
 import { FaRegHeart } from "react-icons/fa";
+import Messages from './Messages';
+import Search from './Search';
 
 function Home() {
     const [selectedMenuItem, setSelectedMenuItem] = useState('Home');
@@ -238,6 +240,12 @@ function Home() {
                 }
                 {selectedMenuItem === 'Reels' &&
                     <Reel />
+                }
+                {selectedMenuItem === 'Messages' &&
+                    <Messages />
+                }
+                {selectedMenuItem === 'Search' &&
+                    <Search />
                 }
                 {selectedMenuItem === 'Home' &&
                     <>

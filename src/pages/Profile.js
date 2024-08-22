@@ -150,7 +150,7 @@ const Profile = () => {
         </div>
         <div className="w-[450px] m-auto text-center">
           <div className="w-[100px] h-[100px] p-[15px] m-auto mt-[40px] rounded-full border-[#000] mb-[20px] border-[1px]">
-            <CiCamera onClick={openHighlightModal} className="text-[60px] m-auto" />
+            <CiCamera className="text-[60px] m-auto" />
           </div>
           <h1 className="font-semibold text-[30px]">Share Photos</h1>
           <p className="text-[14px]">When you share photos, they will appear on your profile.</p>
